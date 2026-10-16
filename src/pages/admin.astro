@@ -1,0 +1,181 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Administrar · Turritorneo" current="admin">
+  <section class="hero"><p class="eyebrow">TU TORNEO, A TU MANERA</p><h1>El juego está en tus manos.</h1><p class="hero-copy">Crea competencias, reúne a los concursantes, suma sus puntos y marca el camino a la final.</p><div class="hero-rule" aria-hidden="true"></div></section>
+
+  <section class="card login" id="login" aria-labelledby="t-login" hidden>
+    <div class="card-head"><h2 id="t-login">Acceso de administrador</h2></div>
+    <form id="login-form" autocomplete="on">
+      <input name="user" placeholder="Usuario" autocomplete="username" required aria-label="Usuario" />
+      <input name="password" type="password" placeholder="Contraseña" autocomplete="current-password" required aria-label="Contraseña" />
+      <button>Entrar</button>
+    </form>
+    <p id="login-msg" class="status" role="alert"></p>
+  </section>
+
+  <p id="msg" class="status" role="status"></p>
+
+  <div id="panel" class="panel" hidden>
+    <p class="panel-bar"><button type="button" id="logout" class="ghost">Cerrar sesión</button></p>
+
+    <!-- list of competitions -->
+    <div id="list-view" class="panel" hidden>
+      <section class="card" aria-labelledby="t-new">
+        <div class="card-head"><h2 id="t-new">Nueva competencia</h2></div>
+        <form id="new-comp" autocomplete="off">
+          <input name="name" placeholder="Nombre de la competencia" maxlength="60" required aria-label="Nombre de la competencia" />
+          <button>Crear</button>
+        </form>
+      </section>
+      <section aria-label="Competencias"><div id="cards" class="cards"></div></section>
+    </div>
+
+    <!-- one competition -->
+    <div id="edit-view" class="panel" hidden>
+      <p><a class="back" href="/admin">← Competencias</a></p>
+      <section class="card" aria-labelledby="t-name">
+        <div class="card-head"><h2 id="t-name">Competencia</h2></div>
+        <form id="rename" autocomplete="off">
+          <input name="name" maxlength="60" required aria-label="Nombre de la competencia" />
+          <button class="ghost">Renombrar</button>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="t-add">
+        <div class="card-head"><h2 id="t-add">Agregar concursante</h2></div>
+        <form id="add" autocomplete="off">
+          <input name="flag" placeholder="🏳️" maxlength="8" aria-label="Bandera o emoji" class="flag" />
+          <input name="name" placeholder="Nombre del concursante" maxlength="40" required aria-label="Nombre" />
+          <button>Agregar</button>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="t-rank">
+        <div class="card-head"><h2 id="t-rank">Clasificación</h2></div>
+        <table class="rank">
+          <thead><tr><th>#</th><th>Concursante</th><th class="pts">Pts</th><th><span class="sr-only">Acciones</span></th></tr></thead>
+          <tbody id="rank"></tbody>
+        </table>
+        <p id="empty" class="empty-state" hidden>Aún no hay concursantes.</p>
+      </section>
+
+      <section class="card" id="grid-card" aria-labelledby="t-br">
+        <div class="card-head">
+          <h2 id="t-br">El camino a la final</h2>
+          <div class="head-actions"><p class="hint">Toca un concursante para avanzarlo. Toca de nuevo para deshacer.</p><button type="button" id="fs" class="ghost">Pantalla completa</button></div>
+        </div>
+        <div id="bracket" class="bracket" tabindex="0" role="region" aria-label="Llave del torneo"></div>
+      </section>
+    </div>
+  </div>
+</Base>
+
+<script>
+  // CRUD: every write to the API lives here, never in the public views.
+  import { $, el } from '../lib/dom.js';
+  import * as api from '../lib/api.js';
+  import { renderRank } from '../lib/rank.js';
+  import { renderBracket } from '../lib/bracket.js';
+  import { renderCards } from '../lib/cards.js';
+  import { setupFullscreen } from '../lib/fullscreen.js';
+
+  const cid = new URLSearchParams(location.search).get('c'); // null -> list view
+  let comps = [];
+  let state = { contestants: [], picks: {} };
+
+  const render = () => {
+    if (!cid) {
+      renderCards($('#cards'), comps, (c) => `/admin?c=${encodeURIComponent(c.id)}`, (c) => [
+        el('button', { className: 'ghost del', ariaLabel: `Eliminar ${c.name}`, onclick: () => remove(c) }, 'Eliminar'),
+      ]);
+      return;
+    }
+    $('#empty').hidden = state.contestants.length > 0;
+    renderRank($('#rank'), state.contestants, rowActions);
+    renderBracket($('#bracket'), state, (match, winner) => run(() => api.setPick(cid, match, winner)));
+  };
+
+  // Runs one API call at a time; `fn` resolves to fresh data. `apply` stores it.
+  let busy = false;
+  const run = async (fn) => {
+    if (busy) return false;
+    busy = true;
+    const focusLabel = document.activeElement?.getAttribute('aria-label');
+    const controls = [...document.querySelectorAll('#panel button, #panel input')];
+    const disabled = controls.map(c => c.disabled);
+    controls.forEach(c => c.disabled = true);
+    document.querySelector('main').setAttribute('aria-busy', 'true');
+    try {
+      const next = await fn();
+      $('#msg').textContent = '';
+      if (cid) {
+        if (JSON.stringify(next) !== JSON.stringify(state)) { state = next; $('#rename').elements.name.value ||= state.name; render(); }
+        else if (!$('#rank').children.length) render();
+      } else { comps = next; render(); }
+      if (focusLabel) [...document.querySelectorAll('button')].find(b => b.getAttribute('aria-label') === focusLabel)?.focus();
+      return true;
+    }
+    catch (e) { if (e.status === 401) showLogin(); else $('#msg').textContent = e.message; return false; }
+    finally { busy = false; controls.forEach((c, i) => c.disabled = disabled[i]); document.querySelector('main').removeAttribute('aria-busy'); }
+  };
+
+  const load = () => (cid ? api.getCompetition(cid) : api.listCompetitions());
+
+  const remove = (c) => {
+    if (!confirm(`¿Eliminar la competencia "${c.name}" y todos sus concursantes?`)) return;
+    run(async () => { await api.deleteCompetition(c.id); return api.listCompetitions(); });
+  };
+
+  const btn = (txt, title, cls, fn) => el('button', { className: `ghost ${cls}`, title, ariaLabel: title, onclick: fn }, txt);
+  const rowActions = (c) => [
+    btn('−1', `Restar punto a ${c.name}`, '', () => run(() => api.addPoints(cid, c.id, -1))),
+    btn('+1', `Sumar punto a ${c.name}`, '', () => run(() => api.addPoints(cid, c.id, 1))),
+    btn('✕', `Eliminar a ${c.name}`, 'del', () => run(() => api.removeContestant(cid, c.id))),
+  ];
+
+  $('#new-comp').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    if (await run(async () => { await api.createCompetition(f.elements.name.value); return api.listCompetitions(); })) f.reset();
+  });
+  $('#rename').addEventListener('submit', (e) => {
+    e.preventDefault();
+    run(() => api.renameCompetition(cid, e.target.elements.name.value));
+  });
+  $('#add').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    const { name, flag } = f.elements; // f.name would be the form's own attribute
+    if (await run(() => api.addContestant(cid, name.value, flag.value))) {
+      f.reset();
+      name.focus();
+    }
+  });
+
+  const showLogin = () => { $('#panel').hidden = true; $('#login').hidden = false; $('#login-form').elements.user.focus(); };
+  const showPanel = () => {
+    $('#login').hidden = true; $('#panel').hidden = false;
+    $('#list-view').hidden = !!cid; $('#edit-view').hidden = !cid;
+    run(load);
+  };
+
+  $('#login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const { user, password } = e.target.elements;
+    try { await api.login(user.value, password.value); password.value = ''; $('#login-msg').textContent = ''; showPanel(); }
+    catch (err) { $('#login-msg').textContent = err.message; }
+  });
+  $('#logout').addEventListener('click', async () => { await api.logout().catch(() => {}); showLogin(); });
+  setupFullscreen($('#fs'), $('#grid-card'));
+  api.isAdmin().then((ok) => (ok ? showPanel() : showLogin())).catch(() => { $('#msg').textContent = 'Sin conexión con el servidor.'; });
+
+  // Refresh idle screens without replacing controls while someone is editing.
+  const poll = () => {
+    if (!$('#panel').hidden && !document.hidden && !document.activeElement?.matches('input, button')) run(load);
+  };
+  const timer = setInterval(poll, 5000);
+  document.addEventListener('visibilitychange', poll);
+  window.addEventListener('pagehide', () => clearInterval(timer), { once: true });
+  window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
+</script>

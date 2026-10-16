@@ -1,0 +1,53 @@
+{
+  "contestants": [
+    {
+      "id": "79f31459-0317-4e24-9acf-be0371a24073",
+      "name": "Aurora",
+      "flag": "⚡",
+      "points": 20
+    },
+    {
+      "id": "f3f8f0ac-ab72-49ec-979e-16f075186700",
+      "name": "Horizonte",
+      "flag": "⚡",
+      "points": 0
+    },
+    {
+      "id": "869d162d-6234-4197-970e-cb84948bdc5c",
+      "name": "Norte",
+      "flag": "⚡",
+      "points": 0
+    },
+    {
+      "id": "9fa9e38b-7107-4bf5-85e4-36c2c3d39287",
+      "name": "Cumbre",
+      "flag": "⚡",
+      "points": 0
+    },
+    {
+      "id": "8d21ade1-def3-4f2b-b980-6f39652c6522",
+      "name": "Brisa",
+      "flag": "⚡",
+      "points": 0
+    },
+    {
+      "id": "60a55787-6596-4bf7-bd5b-d5b04e904684",
+      "name": "Estrella",
+      "flag": "⚡",
+      "points": 0
+    },
+    {
+      "id": "039abd28-6d08-49a4-95cc-e7bdad1dba76",
+      "name": "Rayo",
+      "flag": "⚡",
+      "points": 0
+    },
+    {
+      "id": "759c6747-508a-409f-bad7-484f756f98e2",
+      "name": "Oceano",
+      "flag": "⚡",
+      "points": 0
+    }
+  ],
+  "picks": {}
+}

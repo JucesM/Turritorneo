@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Turritorneo" current="view">
+  <section class="hero"><p class="eyebrow">LAS COMPETENCIAS, EN VIVO</p><h1>Cada punto cuenta.</h1><p class="hero-copy">Elige una competencia. Vive cada cruce. Descubre al próximo campeón.</p><div class="hero-rule" aria-hidden="true"></div></section>
+  <section aria-label="Competencias"><div id="cards" class="cards" aria-live="polite"></div></section>
+  <p id="msg" class="status" role="status"></p>
+</Base>
+
+<script>
+  // Read-only home: lists competitions as cards. Polls so a projected screen stays live.
+  import { $ } from '../lib/dom.js';
+  import { listCompetitions } from '../lib/api.js';
+  import { renderCards } from '../lib/cards.js';
+
+  const POLL_MS = 5000;
+  let last = '';
+  let pending = false;
+
+  async function refresh() {
+    if (pending || document.hidden) return;
+    pending = true;
+    try {
+      const list = await listCompetitions();
+      $('#msg').textContent = '';
+      const snapshot = JSON.stringify(list);
+      if (snapshot === last) return;
+      last = snapshot;
+      renderCards($('#cards'), list, (c) => `/competicion?id=${encodeURIComponent(c.id)}`);
+    } catch (e) {
+      $('#msg').textContent = 'Sin conexión con el servidor.';
+    } finally { pending = false; }
+  }
+
+  refresh();
+  const timer = setInterval(refresh, POLL_MS);
+  document.addEventListener('visibilitychange', refresh);
+  window.addEventListener('pagehide', () => clearInterval(timer), { once: true });
+  window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
+</script>

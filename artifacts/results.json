@@ -1,0 +1,129 @@
+{
+  "api": "passed",
+  "browserCrud": "passed",
+  "doubleSubmit": "passed",
+  "polling": "passed",
+  "consoleErrors": [],
+  "screenshots": [
+    {
+      "route": "/",
+      "width": 1440,
+      "colorScheme": "light",
+      "page": 1440,
+      "viewport": 1440,
+      "bracket": 1332,
+      "card": 1134,
+      "screenshot": "public-1440-light.png"
+    },
+    {
+      "route": "/admin",
+      "width": 1440,
+      "colorScheme": "light",
+      "page": 1440,
+      "viewport": 1440,
+      "bracket": 1332,
+      "card": 1134,
+      "screenshot": "admin-1440-light.png"
+    },
+    {
+      "route": "/",
+      "width": 768,
+      "colorScheme": "light",
+      "page": 768,
+      "viewport": 768,
+      "bracket": 1332,
+      "card": 622,
+      "screenshot": "public-768-light.png"
+    },
+    {
+      "route": "/admin",
+      "width": 768,
+      "colorScheme": "light",
+      "page": 768,
+      "viewport": 768,
+      "bracket": 1332,
+      "card": 622,
+      "screenshot": "admin-768-light.png"
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "colorScheme": "light",
+      "page": 390,
+      "viewport": 390,
+      "bracket": 1332,
+      "card": 308,
+      "screenshot": "public-390-light.png"
+    },
+    {
+      "route": "/admin",
+      "width": 390,
+      "colorScheme": "light",
+      "page": 390,
+      "viewport": 390,
+      "bracket": 1332,
+      "card": 308,
+      "screenshot": "admin-390-light.png"
+    },
+    {
+      "route": "/",
+      "width": 1440,
+      "colorScheme": "dark",
+      "page": 1440,
+      "viewport": 1440,
+      "bracket": 1332,
+      "card": 1134,
+      "screenshot": "public-1440-dark.png"
+    },
+    {
+      "route": "/admin",
+      "width": 1440,
+      "colorScheme": "dark",
+      "page": 1440,
+      "viewport": 1440,
+      "bracket": 1332,
+      "card": 1134,
+      "screenshot": "admin-1440-dark.png"
+    },
+    {
+      "route": "/",
+      "width": 768,
+      "colorScheme": "dark",
+      "page": 768,
+      "viewport": 768,
+      "bracket": 1332,
+      "card": 622,
+      "screenshot": "public-768-dark.png"
+    },
+    {
+      "route": "/admin",
+      "width": 768,
+      "colorScheme": "dark",
+      "page": 768,
+      "viewport": 768,
+      "bracket": 1332,
+      "card": 622,
+      "screenshot": "admin-768-dark.png"
+    },
+    {
+      "route": "/",
+      "width": 390,
+      "colorScheme": "dark",
+      "page": 390,
+      "viewport": 390,
+      "bracket": 1332,
+      "card": 308,
+      "screenshot": "public-390-dark.png"
+    },
+    {
+      "route": "/admin",
+      "width": 390,
+      "colorScheme": "dark",
+      "page": 390,
+      "viewport": 390,
+      "bracket": 1332,
+      "card": 308,
+      "screenshot": "admin-390-dark.png"
+    }
+  ]
+}

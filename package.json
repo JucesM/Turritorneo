@@ -1,0 +1,17 @@
+{
+  "name": "turritorneo",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n api,web \"node --env-file-if-exists=.env server/index.js\" \"astro dev\"",
+    "build": "astro build",
+    "start": "node --env-file-if-exists=.env server/index.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
+    "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

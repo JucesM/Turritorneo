@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Turritorneo" current="view">
+  <section class="hero"><p class="eyebrow">EL TORNEO, EN VIVO</p><h1>Cada punto cuenta.</h1><p class="hero-copy">Sigue la clasificación. Vive cada cruce. Descubre al próximo campeón.</p><div class="hero-rule" aria-hidden="true"></div></section>
+  <section class="card" id="grid-card" aria-labelledby="t-br">
+    <div class="card-head"><div><p class="eyebrow">EL CAMINO A LA FINAL</p><h2 id="t-br">Tournament Grid</h2></div><div class="head-actions"><p class="hint scroll-hint">Desliza para ver toda la llave </p><button type="button" id="fs" class="ghost">Pantalla completa</button></div></div>
+    <div id="bracket" class="bracket" tabindex="0" role="region" aria-label="Llave del torneo, desplazable horizontalmente"></div>
+  </section>
+
+  <p id="msg" class="status" role="status"></p>
+</Base>
+
+<script>
+  // Read-only view: no forms, no buttons. Polls so a projected screen stays live.
+  import { $ } from '../lib/dom.js';
+  import { getState } from '../lib/api.js';
+  import { setupFullscreen } from '../lib/fullscreen.js';
+  import { renderBracket } from '../lib/bracket.js';
+
+  const POLL_MS = 5000;
+  let last = '';
+  let pending = false;
+
+  async function refresh() {
+    if (pending || document.hidden) return;
+    pending = true;
+    try {
+      const state = await getState();
+      $('#msg').textContent = '';
+      const snapshot = JSON.stringify(state);
+      if (snapshot === last) return; // nothing changed, keep DOM (and scroll position)
+      last = snapshot;
+      renderBracket($('#bracket'), state);
+    } catch (e) {
+      $('#msg').textContent = 'Sin conexión con el servidor.';
+    } finally { pending = false; }
+  }
+
+  setupFullscreen($('#fs'), $('#grid-card'));
+  refresh();
+  const timer = setInterval(refresh, POLL_MS);
+  document.addEventListener('visibilitychange', refresh);
+  window.addEventListener('pagehide', () => clearInterval(timer), { once: true });
+  window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
+</script>

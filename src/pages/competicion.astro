@@ -1,0 +1,52 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Competencia · Turritorneo" current="view">
+  <section class="hero"><a class="back" href="/">← Competencias</a><p class="eyebrow">EN VIVO</p><h1 id="name">…</h1><div class="hero-rule" aria-hidden="true"></div></section>
+  <section class="card" id="grid-card" aria-labelledby="t-br">
+    <div class="card-head"><h2 id="t-br">El camino a la final</h2><div class="head-actions"><button type="button" id="fs" class="ghost">Pantalla completa</button></div></div>
+    <div id="bracket" class="bracket" tabindex="0" role="region" aria-label="Llave del torneo"></div>
+  </section>
+  <p id="msg" class="status" role="status"></p>
+</Base>
+
+<script>
+  // Read-only view of one competition: no forms, no write buttons.
+  import { $ } from '../lib/dom.js';
+  import { getCompetition } from '../lib/api.js';
+  import { renderBracket } from '../lib/bracket.js';
+  import { setupFullscreen } from '../lib/fullscreen.js';
+
+  const id = new URLSearchParams(location.search).get('id');
+  const POLL_MS = 5000;
+  let last = '';
+  let pending = false;
+
+  async function refresh() {
+    if (pending || document.hidden) return;
+    pending = true;
+    try {
+      const k = await getCompetition(id);
+      $('#msg').textContent = '';
+      const snapshot = JSON.stringify(k);
+      if (snapshot === last) return;
+      last = snapshot;
+      $('#name').textContent = k.name;
+      document.title = `${k.name} · Turritorneo`;
+      renderBracket($('#bracket'), k);
+    } catch (e) {
+      $('#msg').textContent = e.status === 404 ? 'Esa competencia no existe.' : 'Sin conexión con el servidor.';
+      if (e.status === 404) { $('#name').textContent = 'No encontrada'; $('#grid-card').hidden = true; }
+    } finally { pending = false; }
+  }
+
+  if (!id) { $('#name').textContent = 'No encontrada'; $('#grid-card').hidden = true; }
+  else {
+    setupFullscreen($('#fs'), $('#grid-card'));
+    refresh();
+    const timer = setInterval(refresh, POLL_MS);
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('pagehide', () => clearInterval(timer), { once: true });
+    window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
+  }
+</script>

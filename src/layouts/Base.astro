@@ -1,0 +1,30 @@
+---
+import '../styles/global.css';
+interface Props { title: string; current: 'view' | 'admin' }
+const { title, current } = Astro.props;
+---
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <link rel="icon" href="/logo.png" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href="/">
+          <img src="/logo.png" alt="" width="44" height="38" />
+          <span class="brand-name">Turritorneo</span>
+        </a>
+        <nav aria-label="Principal">
+          <a href="/" aria-current={current === 'view' ? 'page' : undefined}>Vista</a>
+          <a href="/admin" aria-current={current === 'admin' ? 'page' : undefined}>Administrar</a>
+        </nav>
+      </div>
+    </header>
+    <div class="wrap"><main id="main"><slot /></main></div>
+    <footer class="wrap">Turritorneo <span>El talento se encuentra aquí.</span></footer>
+  </body>
+</html>
